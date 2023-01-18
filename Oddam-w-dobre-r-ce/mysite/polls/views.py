@@ -11,17 +11,24 @@ from django.contrib.auth import get_user
 import ipdb
 
 
-    def index(request):
-        return HttpResponse(request, index.html, context)
+def index(request):
+    return HttpResponse(request, index.html, context)
 
-    def Landing_Page (request):
-        return TemplateRespone(request, base.html, context)
+def Landing_Page(request):
+    queryset = Category.objects.all()
+    context = {
+        'queryset': queryset
+#        'user_id': request.user.id
+    }
+    return TemplateResponse(request, 'index.html',context)
+    #return HttpResponse("Hello, world. You're at the polls index.")
 
-    def AddDonation (request):
-        return TemplateResponse(request, form-confirmation.html, context)
 
-    def Login (request):
-        return TemplateResponse(request, login.html, context)
+def AddDonation(request):
+    return TemplateResponse(request, 'form-confirmation.html', context)
 
-    def Register (request):
-        return TemplateResponse(request, register.html, context)
+def Login(request):
+    return TemplateResponse(request, 'login.html', context)
+
+def Register(request):
+    return TemplateResponse(request, 'register.html', context)
