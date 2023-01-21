@@ -11,7 +11,8 @@ urlpatterns = [
     path('landing_page/', views.Landing_Page, name='landing_page'),
     path('form/', views.AddDonation, name='form'),
     path('login/', views.Login, name='login'),
-    path('register/', views.Register, name='register')
+    path('register/', views.Register, name='register'),
+    path('index/', views.index, name='index')
 
 ]
 
