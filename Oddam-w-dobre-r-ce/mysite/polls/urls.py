@@ -9,9 +9,9 @@ urlpatterns = [
     path('', views.Landing_Page,name='Home'),
 #    path('admin/', admin.site.urls),
     path('landing_page/', views.Landing_Page, name='landing_page'),
-    path('AddDonation/#giveaway-form', views.AddDonation, name='add_donation'),
+    path('form/', views.AddDonation, name='form'),
     path('login/', views.Login, name='login'),
-    path('Register/#register-page', views.Register, name='register')
+    path('register/', views.Register, name='register')
 
 ]
 

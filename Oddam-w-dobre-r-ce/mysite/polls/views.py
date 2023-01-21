@@ -12,7 +12,15 @@ import ipdb
 
 
 def index(request):
-    return HttpResponse(request, index.html, context)
+    queryset = Category.objects.all()
+    context = {
+        'queryset': queryset
+        #        'user_id': request.user.id
+    }
+    return TemplateResponse(request, 'index.html', context)
+    # return HttpResponse("Hello, world. You're at the polls index.")
+    #return TemplateResponse(request, 'login.html', context)
+    #return HttpResponse(request, index.html, context)
 
 def Landing_Page(request):
     queryset = Category.objects.all()
@@ -25,7 +33,15 @@ def Landing_Page(request):
 
 
 def AddDonation(request):
-    return TemplateResponse(request, 'form-confirmation.html', context)
+    queryset = Category.objects.all()
+    context = {
+        'queryset': queryset
+        #        'user_id': request.user.id
+    }
+    return TemplateResponse(request, 'form.html', context)
+    # return HttpResponse("Hello, world. You're at the polls index.")
+    #return TemplateResponse(request, 'login.html', context)
+    #return TemplateResponse(request, 'form-confirmation.html', context)
 
 def Login(request):
     queryset = Category.objects.all()
@@ -38,4 +54,12 @@ def Login(request):
     #return TemplateResponse(request, 'login.html', context)
 
 def Register(request):
+    queryset = Category.objects.all()
+    context = {
+        'queryset': queryset
+        #        'user_id': request.user.id
+    }
     return TemplateResponse(request, 'register.html', context)
+    # return HttpResponse("Hello, world. You're at the polls index.")
+    #return TemplateResponse(request, 'login.html', context)
+    #return TemplateResponse(request, 'register.html', context)
