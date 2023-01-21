@@ -28,7 +28,14 @@ def AddDonation(request):
     return TemplateResponse(request, 'form-confirmation.html', context)
 
 def Login(request):
+    queryset = Category.objects.all()
+    context = {
+        'queryset': queryset
+        #        'user_id': request.user.id
+    }
     return TemplateResponse(request, 'login.html', context)
+    # return HttpResponse("Hello, world. You're at the polls index.")
+    #return TemplateResponse(request, 'login.html', context)
 
 def Register(request):
     return TemplateResponse(request, 'register.html', context)
