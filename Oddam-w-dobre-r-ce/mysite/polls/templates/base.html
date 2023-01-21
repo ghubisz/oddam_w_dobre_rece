@@ -16,12 +16,12 @@
         </ul>
 
         <ul>
-          <li><a href="" class="btn btn--without-border active">Start</a></li>
-          <li><a href=../html-link.html#about-us>O co chodzi?</a></li>
-          <li><a href="#about-us" class="btn btn--without-border">O nas</a></li>
-          <li><a href="#help" class="btn btn--without-border">Fundacje i organizacje</a></li>
+          <li><a href="{% url 'index'%}" class="btn btn--without-border active">Start</a></li>
+          <li><a href="{% url 'index'%}#section-4">O co chodzi?</a></li>
+          <li><a href="{% url 'index'%}#section-5" class="btn btn--without-border">O nas</a></li>
+          <li><a href="{% url 'index'%}#section-6" class="btn btn--without-border">Fundacje i organizacje</a></li>
           <li><a href="{% url 'form'%}#section-3" class="btn btn--without-border">Przekaż dary</a></li>
-          <li><a href="#contact" class="btn btn--without-border">Kontakt</a></li>
+          <li><a href="{% url 'index'%}#section-7" class="btn btn--without-border">Kontakt</a></li>
         </ul>
       </nav>
 
