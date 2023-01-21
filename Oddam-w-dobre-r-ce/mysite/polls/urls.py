@@ -10,7 +10,7 @@ urlpatterns = [
 #    path('admin/', admin.site.urls),
     path('landing_page/', views.Landing_Page, name='landing_page'),
     path('AddDonation/#giveaway-form', views.AddDonation, name='add_donation'),
-    path('Login/#login-page', views.Login, name='login'),
+    path('login/', views.Login, name='login'),
     path('Register/#register-page', views.Register, name='register')
 
 ]
