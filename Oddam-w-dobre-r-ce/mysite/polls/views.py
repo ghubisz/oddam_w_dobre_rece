@@ -23,17 +23,29 @@ def index(request):
     #return HttpResponse(request, index.html, context)
 
 def Landing_Page(request):
-    queryset = Category.objects.all()
-    context = {
-        'queryset': queryset
-#        'user_id': request.user.id
+    def get(self, request, *args, **kwargs):
+        donations = Donation.objects.all()
+        foundations = Institution.objects.filter(institution_type='FUND')
+        charity = Institution.objects.filter(institution_type='CHAR')
+        quantity = sum([donation.quantity for donation in donations])
+        institutions = len(set([donation.institution_id for donation in
+                                donations]))
+
+        context = {
+            'quantity': quantity,
+            'institutions': institutions,
+            'foundations': foundations,
+            'charitiy': charity
+#            'queryset': queryset
+#            'user_id': request.user.id
     }
-    return TemplateResponse(request, 'index.html',context)
+        return render(request, 'index.html', context)
     #return HttpResponse("Hello, world. You're at the polls index.")
 
 
 def AddDonation(request):
     queryset = Category.objects.all()
+
     context = {
         'queryset': queryset
         #        'user_id': request.user.id
