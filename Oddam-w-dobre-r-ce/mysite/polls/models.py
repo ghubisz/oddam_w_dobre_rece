@@ -28,6 +28,7 @@ class Institution(models.Model):
     def __str__(self):
         return self.name
 
+
 class Donation(models.Model):
     quantity = models.DecimalField(max_digits=6, decimal_places=2)
     categories = models.ForeignKey(to=Category, on_delete=models.CASCADE)
@@ -44,4 +45,6 @@ class Donation(models.Model):
 
     def __str__(self):
         return self.name
+
+
 
