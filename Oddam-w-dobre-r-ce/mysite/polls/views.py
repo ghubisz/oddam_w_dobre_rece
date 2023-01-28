@@ -22,6 +22,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
+from .forms import *
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -29,6 +30,8 @@ from django.views.generic import (
     FormView,
     TemplateView
 )
+from .tokens import email_verification_token
+from formtools.wizard.views import SessionWizardView
 
 
 def index(request):
@@ -42,7 +45,7 @@ def index(request):
     #return TemplateResponse(request, 'login.html', context)
     #return HttpResponse(request, index.html, context)
 
-def Landing_Page(request):
+class Landing_Page(View):
     def get(self, request, *args, **kwargs):
         donations = Donation.objects.all()
         foundations = Institution.objects.filter(institution_type='FUND')
@@ -89,17 +92,13 @@ def AddDonation(request):
     #return TemplateResponse(request, 'login.html', context)
     #return TemplateResponse(request, 'form-confirmation.html', context)
 
-def Login(request):
-    queryset = Category.objects.all()
-    context = {
-        'queryset': queryset
-        #        'user_id': request.user.id
-    }
-    return TemplateResponse(request, 'login.html', context)
-    # return HttpResponse("Hello, world. You're at the polls index.")
-    #return TemplateResponse(request, 'login.html', context)
+class Login(LoginView):
 
-class RegisterView(SuccessMessageMixin, CreateView):
+    form_class = LoginForm
+    template_name = "login.html"
+
+
+class Register(SuccessMessageMixin, CreateView):
     model = get_user_model()
     form_class = RegisterForm
     template_name = "register.html"
@@ -136,3 +135,133 @@ class RegisterView(SuccessMessageMixin, CreateView):
     # return HttpResponse("Hello, world. You're at the polls index.")
     #return TemplateResponse(request, 'login.html', context)
     #return TemplateResponse(request, 'register.html', context)
+
+class AddDonationView(SessionWizardView):
+    form_list = (
+        AddDonationFormStepOne,
+        AddDonationFormStepTwo,
+        AddDonationFormStepThree,
+        AddDonationStepFour,
+        AddDonationFormStepFive
+
+    )
+    def get_context_data(self, form, **kwargs):
+        context = super(AddDonationView, self).get_context_data(form, **kwargs)
+        context['categories'] = Category.objects.all()
+        context['institutions'] = Institution.objects.all()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        try:
+            return self.render(self.get_form())
+        except KeyError:
+            return super().get(request, *args, **kwargs)
+
+    def get_form_initial(self, step):
+        if step == '2':
+            step0data = self.get_cleaned_data_for_step('0')
+            if step0data:
+                categories = step0data.get('categories', '')
+                return self.initial_dict.get(step, {'categories': categories})
+        return self.initial_dict.get(step, {})
+
+    def done(self, form_list, **kwargs):
+        form_data = [form.cleaned_data for form in form_list]
+        categories = form_data[0]['categories']
+        donation = Donation.objects.create(
+            quantity = form_data[1]['quantity'],
+            institution = form_data[2]['institution'],
+            address = form_data.cleaned_data['address'],
+            city = form_data.cleaned_data['city'],
+            zip_code = form_data.cleaned_data['zip_code'],
+            phone_number = form_data.cleaned_data['phone_number'],
+            pick_up_date = form_data.cleaned_data['pick_up_date'],
+            pick_up_time = form_data.cleaned_data['pick_up_time'],
+            pick_up_comment = form_data.cleaned_data['pick_up_comment'],
+            user=self.request.user
+
+        )
+        donation.categories.set(categories)
+        return render(self.request,'form-confirmation.html', {'form_data': [
+            form.cleaned_data for form in form_list]})
+
+class Activate(View):
+    template_name = 'login.html'
+
+#    def get(self, request, uidb64, token):
+#        try:
+#            uid = force_text(urlsafe_base64_decode(uidb64))
+#            user = CustomUser.objects.get(pk=uid)
+
+#        except(TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+#            user = None
+#        if user is not None and email_verification_token.check_token(user, token):
+#            user.is_active = True
+#            user.save()
+#            messages.add_message(request, messages.INFO, 'Konto aktywne. Możesz się teraz zalogować.')
+#            return render(request, self.template_name)
+#        else:
+#            messages.add_message(request, messages.WARNING, 'Link aktywacyjny wygasł.')
+#            return render(request, self.template_name)
+
+class ProfileView(UserPassesTestMixin, LoginRequiredMixin, DetailView):
+
+#    model = CustomUser
+#    template_name = 'profile.html'
+#    pk_url_kwarg = 'pk'
+
+    def test_func(self):
+        return self.request.user == self.get_object()
+
+class UserEditView(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
+
+    template_name = 'edit_profile.html'
+    form_class = UserEditForm
+    success_url = reverse_lazy('landing-page')
+
+    def get_object(self):
+        return self.request.user
+
+    def get_success_message(self, cleaned_data):
+        return "Twoje dane zostały zmienione!"
+
+class UserPasswordChangeView(SuccessMessageMixin, PasswordChangeView):
+
+    template_name = 'change_password.html'
+    form_class = UserPasswordChangeForm
+    success_url = reverse_lazy('landing-page')
+
+    def get_success_message(self, cleaned_data):
+        return "Twoje hasło zostało zmienione!"
+
+class DonationListView(LoginRequiredMixin, View):
+
+    template_name = 'donations.html'
+
+    def get(self, request, *args, **kwargs):
+        """ Creates new field 'my_dt' on model Donation to filter by combined two other model's fields: Date and Time Field.
+         Pass the results to context."""
+        user_donations = Donation.objects.annotate(
+            my_dt = ExpressionWrapper(F('pick_up_date')+F('pick_up_time'),
+                                      output_field=DateTimeField())).filter(
+            user= request.user)
+        picked_up = user_donations.filter(my_dt__lt=timezone.now())
+        ordered = user_donations.filter(my_dt__gt=timezone.now())
+        context = {
+
+            'picked_up': picked_up,
+            'ordered': ordered,
+        }
+        return render(request, self.template_name, context)
+
+class DonaionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+
+    model = Donation
+    template_name = 'donation_detail.html'
+    pk_url_kwarg = 'pk'
+
+    def test_func(self):
+        """Forbidden access to the view if object Donation not belong to
+        request.user
+        """
+        return self.request.user == self.get_object().user

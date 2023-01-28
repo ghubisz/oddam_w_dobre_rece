@@ -3,8 +3,10 @@ import re
 import phonenumbers
 from django import forms
 from django.contrib.auth.forms import (
-    UserCreationForm
-    AuthenticationForm, UserChangeForm, PasswordChangeForm,
+    UserCreationForm,
+    AuthenticationForm,
+    UserChangeForm,
+    PasswordChangeForm,
 )
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
@@ -58,7 +60,7 @@ class UserEditForm(UserChangeForm):
 
     class Meta:
         model = get_user_model()
-        fields = ('first_name', 'last_name', 'email', 'cofirm_password')
+        fields = ('first_name', 'last_name', 'email', 'confirm_password')
         error_messages = {
             'email': {
                 'unique': "Podany e-mail jest już zarejestrowany.",
