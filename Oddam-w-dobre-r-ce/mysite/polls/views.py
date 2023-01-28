@@ -99,13 +99,40 @@ def Login(request):
     # return HttpResponse("Hello, world. You're at the polls index.")
     #return TemplateResponse(request, 'login.html', context)
 
-def Register(request):
-    queryset = Category.objects.all()
-    context = {
-        'queryset': queryset
-        #        'user_id': request.user.id
-    }
-    return TemplateResponse(request, 'register.html', context)
+class RegisterView(SuccessMessageMixin, CreateView):
+    model = get_user_model()
+    form_class = RegisterForm
+    template_name = "register.html"
+    success_url = reverse_lazy('login')
+
+    def form_valid(self, form):
+
+        user = form.save(commit=False)
+        to_email = form.cleaned_data.get('email')
+        user.username = to_email
+        user.is_active = False
+        user.save()
+        current_site = get_current_site(self.request)
+        mail_subject = 'Proszę o aktywację konta na charity - donation.'
+        message = render_to_string('to_activate_account.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': account_activation_token.make_token(user),
+        })
+
+        email = EmailMessage(
+                mail_subject,message, to=[to_email]
+
+        )
+        email.send()
+        return super(RegisterView, self).form_valid(form)
+
+    def get_success_message(self, cleaned_data):
+        return "Konto pomyślnie zarezerwowane! Wymagana aktywacja przez adres email."
+
+
+
     # return HttpResponse("Hello, world. You're at the polls index.")
     #return TemplateResponse(request, 'login.html', context)
     #return TemplateResponse(request, 'register.html', context)
