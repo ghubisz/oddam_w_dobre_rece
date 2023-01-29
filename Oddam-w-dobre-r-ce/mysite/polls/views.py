@@ -4,11 +4,10 @@ from django.http import HttpResponseRedirect
 from .models import Category
 from .models import Institution
 from .models import Donation
-#from .models import CustomUser
 from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 import ipdb
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib import messages
@@ -28,10 +27,11 @@ from .forms import (
     AddDonationFormStepThree,
     AddDonationStepFour,
     AddDonationFormStepFive,
-    RegisterForm,
     LoginForm,
     UserEditForm,
-    UserPasswordChangeForm)
+    UserPasswordChangeForm,
+    UserCreationForm,
+    SignUpForm)
 
 from django.views.generic import (
     CreateView,
@@ -43,6 +43,9 @@ from django.views.generic import (
 from .tokens import email_verification_token
 from formtools.wizard.views import SessionWizardView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import ipdb
+from django.conf import settings
+
 
 
 #def index(request):
@@ -175,7 +178,7 @@ class Login(LoginView):
 
 class Register(SuccessMessageMixin, CreateView):
     model = get_user_model()
-    form_class = RegisterForm
+    form_class = SignUpForm
     template_name = "register.html"
     success_url = reverse_lazy('login')
 
@@ -342,7 +345,7 @@ class DonaionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         return self.request.user == self.get_object().user
 
 class SignUp(View):
-    form_class = RegisterForm
+    form_class = SignUpForm
     template_name = 'signup.html'
 
     def get(self, request, *args, **kwargs):
@@ -350,39 +353,43 @@ class SignUp(View):
         return render(request, self.template_name, {'form': form})
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        if form.is_valid():
+       # ipdb.set_trace()
 
+        form = SignUpForm(request.POST)
+        if form.is_valid():
             user = form.save(commit=False)
             user.is_active = False
             user.save()
-
             current_site = get_current_site(request)
             subject = 'Activate Your Account'
-            message = render_to_string('emails/account_activation_email.html', {
+            message = render_to_string('to_activate_account.html', {
                 'user': user,
                 'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'uid' : urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': email_verification_token.make_token(user),
             })
 
-#Todo: Add try catch
-            user.email_user(subject, message)
 
-            messages.success(request,('Please Confirm your email to complete registration.'))
-
-            return redirect('login')
-
-        return render(request, self.template_name, {'form':form})
+            #Todo: Add try catch
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(
+                subject, message, to=[to_email]
+            )
+            email.content_subtype = "html"
+            email.send()
+            return HttpResponse('Please confirm your email address to complete the registration')
+        else:
+            return HttpResponse('Form invalid')
 
 
 class ActivateAccount(View):
 
     def get(self, request, uidb64, token, *args, **kwargs):
+        ipdb.set_trace()
         try:
-            uid = force_text(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = get_user_model().objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
             user = None
 
         if user is not None and email_verification_token.check_token(user, token):

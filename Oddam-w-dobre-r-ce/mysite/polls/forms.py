@@ -12,15 +12,19 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from django.utils.translation import gettext_lazy as _
 
-from .models import Donation, Institution, Category
+from .models import Donation, Institution, Category, CustomUser
 
-class RegisterForm(UserCreationForm):
+class SignUpForm(UserCreationForm):
+
+    first_name = forms.CharField(max_length=30, required=False, help_text='Optional')
+    last_name = forms.CharField(max_length=30, required=False, help_text='Optional')
+    email = forms.EmailField(max_length=254, help_text='Enter a valid email address')
     error_messages = {
         'password_mismatch': _('Wprowadzone hasła się różnią.'),
     }
 
     def __init__(self, *args, **kwargs):
-        super(RegisterForm, self).__init__(*args, **kwargs)
+        super(SignUpForm, self).__init__(*args, **kwargs)
         self.fields['password1'].error_messages = {
             'required': _('Hasło nie może być puste!')
 
@@ -31,13 +35,7 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = get_user_model()
-        fields = (
-            'email',
-            'first_name',
-            'last_name',
-            'password1',
-            'password2'
-        )
+        fields = ('email', 'first_name', 'last_name', 'password1', 'password2')
         error_messages = {
             'email': {
                 'unique': _('Podany e-mail jest już zarejestrowany.'),
