@@ -1,9 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from .models import Category
 from .models import Institution
 from .models import Donation
+#from .models import CustomUser
 from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -14,7 +15,6 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
-from django.core.paginator import Paginator
 from django.db.models import ExpressionWrapper, F, DateTimeField
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
@@ -22,7 +22,17 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
-from .forms import *
+from .forms import (
+    AddDonationFormStepOne,
+    AddDonationFormStepTwo,
+    AddDonationFormStepThree,
+    AddDonationStepFour,
+    AddDonationFormStepFive,
+    RegisterForm,
+    LoginForm,
+    UserEditForm,
+    UserPasswordChangeForm)
+
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -32,18 +42,83 @@ from django.views.generic import (
 )
 from .tokens import email_verification_token
 from formtools.wizard.views import SessionWizardView
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
-def index(request):
-    queryset = Category.objects.all()
-    context = {
-        'queryset': queryset
-        #        'user_id': request.user.id
-    }
-    return TemplateResponse(request, 'index.html', context)
-    # return HttpResponse("Hello, world. You're at the polls index.")
-    #return TemplateResponse(request, 'login.html', context)
-    #return HttpResponse(request, index.html, context)
+#def index(request):
+#    queryset = Category.objects.all()
+#    context = {
+#       'queryset': queryset
+#        #        'user_id': request.user.id
+#    }
+#    return TemplateResponse(request, 'index.html', context)
+#    # return HttpResponse("Hello, world. You're at the polls index.")
+#    #return TemplateResponse(request, 'login.html', context)
+#    #return HttpResponse(request, index.html, context)
+
+class Index(View):
+        def get(self, request, *args, **kwargs):
+            donations = Donation.objects.all()
+            foundations = Institution.objects.filter(institution_type='FUND')
+            charity = Institution.objects.filter(institution_type='CHAR')
+            quantity = sum([donation.quantity for donation in donations])
+            institutions = len(set([donation.institution_id for donation in
+                                    donations]))
+#TODO zmienic pag na 5
+            found_paginator = Paginator(foundations, 3)
+            page = request.GET.get('page1')
+            try:
+                paged_foundations = found_paginator.page(page)
+            except PageNotAnInteger:
+                paged_foundations = found_paginator.page(1)
+            except EmptyPage:
+                paged_foundations = found_paginator.page(found_paginator.num_pages)
+
+            ngos = Institution.objects.filter(institution_type='NGOV')
+            ngos_paginator = Paginator(ngos, 3)
+
+ #           found_paginator = Paginator(foundations, 3)
+            page = request.GET.get('page2')
+            try:
+                paged_ngos = ngos_paginator.page(page)
+            except PageNotAnInteger:
+                paged_ngos = ngos_paginator.page(1)
+            except EmptyPage:
+                paged_ngos = ngos_paginator.page(ngos_paginator.num_pages)
+
+
+
+            charity = Institution.objects.filter(institution_type='CHAR')
+            charity_paginator = Paginator(charity, 2)
+
+ #           found_paginator = Paginator(foundations, 3)
+            page = request.GET.get('page3')
+            try:
+                paged_charity = charity_paginator.page(page)
+            except PageNotAnInteger:
+                paged_charity = charity_paginator.page(1)
+            except EmptyPage:
+                paged_charity = charity_paginator.page(charity_paginator.num_pages)
+
+#            page_number = request.GET.get('foundations')
+ #           foundations = found_paginator.get_page(page_number)
+  #          page_number = request.GET.get('page2')
+   #         ngos = ngos_paginator.get_page(page_number)
+    #        page_number = request.GET.get('page3')
+     #       charities = charity_paginator.get_page(page_number)
+
+
+            context = {
+                'quantity': quantity,
+                'institutions': institutions,
+                'foundations': paged_foundations,
+                'ngos': paged_ngos,
+                'charity': paged_charity
+                #            'queryset': queryset
+                #            'user_id': request.user.id
+            }
+            return render(request, 'index.html', context)
+        # return HttpResponse("Hello, world. You're at the polls index.")
 
 class Landing_Page(View):
     def get(self, request, *args, **kwargs):
@@ -117,7 +192,7 @@ class Register(SuccessMessageMixin, CreateView):
             'user': user,
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': account_activation_token.make_token(user),
+            'token': email_verification_token.make_token(user),
         })
 
         email = EmailMessage(
@@ -185,13 +260,13 @@ class AddDonationView(SessionWizardView):
         return render(self.request,'form-confirmation.html', {'form_data': [
             form.cleaned_data for form in form_list]})
 
-class Activate(View):
-    template_name = 'login.html'
+#class Activate(View):
+#    template_name = 'login.html'
 
 #    def get(self, request, uidb64, token):
 #        try:
 #            uid = force_text(urlsafe_base64_decode(uidb64))
-#            user = CustomUser.objects.get(pk=uid)
+#            user = User.objects.get(pk=uid)
 
 #        except(TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
 #            user = None
@@ -265,3 +340,58 @@ class DonaionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         request.user
         """
         return self.request.user == self.get_object().user
+
+class SignUp(View):
+    form_class = RegisterForm
+    template_name = 'signup.html'
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+
+            current_site = get_current_site(request)
+            subject = 'Activate Your Account'
+            message = render_to_string('emails/account_activation_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': email_verification_token.make_token(user),
+            })
+
+#Todo: Add try catch
+            user.email_user(subject, message)
+
+            messages.success(request,('Please Confirm your email to complete registration.'))
+
+            return redirect('login')
+
+        return render(request, self.template_name, {'form':form})
+
+
+class ActivateAccount(View):
+
+    def get(self, request, uidb64, token, *args, **kwargs):
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and email_verification_token.check_token(user, token):
+            user.is_active = True
+            user.profile.email_confirmed = True
+            user.save()
+            login(request, user)
+            messages.success(request, ('Your account have been confirmed.'))
+            return redirect('home')
+        else:
+            messages.warning(request, ('The confirmation link was invalid, possibly because it has already been used.'))
+            return redirect('home')

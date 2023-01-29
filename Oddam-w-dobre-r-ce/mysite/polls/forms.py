@@ -103,21 +103,21 @@ class UserPasswordChangeForm(PasswordChangeForm):
         )
 
 
-class AddDonationSingleForm(forms.ModelForm):
-    class Meta:
-        model = Donation
-        fields = (
-            'categories',
-            'quantity',
-            'institution',
-            'address',
-            'city',
-            'zip_code',
-            'phone_number',
-            'pick_up_date',
-            'pick_up_time',
-            'pick_up_comment'
-        )
+#class AddDonationSingleForm(forms.ModelForm):
+#    class Meta:
+#        model = Donation
+#        fields = (
+#            'categories',
+#            'quantity',
+#            'institution',
+#            'address',
+#            'city',
+#            'zip_code',
+#            'phone_number',
+#            'pick_up_date',
+#            'pick_up_time',
+#            'pick_up_comment'
+#        )
 
 ##Multistep form
 class AddDonationFormStepOne(forms.Form):

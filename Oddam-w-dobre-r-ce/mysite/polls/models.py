@@ -1,9 +1,11 @@
 import datetime
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
 from django.utils import timezone
 import dateutil.utils
 from enum import Enum
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Category(models.Model):
     name = models.CharField(max_length=128)
@@ -11,23 +13,33 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = ('Kategorie')
+
 class Institution(models.Model):
 
-    class mType(models.IntegerChoices):
-        FUNDACJA = 1
-        ORGANIZACJA_POZARZĄDOWA= 2
-        ZBIÓRKA_LOKALNA = 3
+    class InstitutionType(models.TextChoices):
+        FOUNDATION = 'FUND', 'Fundacja',
+        NON_GOV = 'NGOV', 'Organizacja pozarządowa',
+        CHARITY = 'CHAR', 'Zbiórka lokalna',
 
-    type = models.IntegerField(choices=mType.choices)
+    institution_type = models.CharField(max_length=4,
+                                        choices=InstitutionType.choices,
+                                        default=InstitutionType.FOUNDATION)
 
     name = models.CharField(max_length=128)
     description = models.TextField()
 
-    categories = models.ForeignKey(to=Category, on_delete=models.CASCADE)
+    categories = models.ManyToManyField(Category)
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = ('Instytucje')
+
+#class CustomUser(AbstractUser):
+#    email = models.EmailField(('Email address'), unique=True)
 
 class Donation(models.Model):
     quantity = models.DecimalField(max_digits=6, decimal_places=2)
@@ -44,7 +56,19 @@ class Donation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return self.name
+        return self.institution.name
 
+    class Meta:
+        ordering = ('pick_up_date', 'pick_up_time')
+        verbose_name_plural = ('Donacje')
 
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    email_confirmed = models.BooleanField(default=False)
+
+@receiver(post_save, sender=User)
+def update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+        instance.profile.save()
 
