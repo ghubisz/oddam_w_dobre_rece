@@ -54,7 +54,7 @@
         </div>
       </div>
 
-      <a href="{% url 'register'%}#section-2" class="btn btn--large">Załóż konto</a>
+      <a href="{% url 'signup'%}#section-2" class="btn btn--large">Załóż konto</a>
     </section>
                 <a name="section-5"> </a>
     <section id="about-us" class="about-us">
@@ -77,48 +77,39 @@
       </ul>
 
       <!-- SLIDE 1 -->
-       {% for data in queryset %}
+
       <div class="help--slides active" data-id="1">
         <p>W naszej bazie znajdziesz listę zweryfikowanych Fundacji, z którymi współpracujemy. Możesz sprawdzić czym się zajmują, komu pomagają i czego potrzebują.</p>
 
+        {% if foundations %}
         <ul class="help--slides-items">
+            {% for foundation in foundations %}
           <li>
             <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subtitle" class="item_value">{{data.description}}</div>
+              <div id="foundation_title" class="item_value">{{ foundation.name }}</div>
+              <div id="foundation_subtitle" class="item_value">{{ foundation.description }}</div>
             </div>
 
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
+            <div id="foundation_text" class="item_value">{{ foundation.text }}</div>
           </li>
-
-          <li>
-            <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subttile" class="item_value">{{data.description}}</div>
-            </div>
-
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
-          </li>
-
-          <li>
-            <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subtitle" class="item_value">{{data.description}}</div>
-            </div>
-
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
-          </li>
+            {% endfor %}
         </ul>
-        <!-- Pagination
-        <ul class="help--slides-pagination">
-          <li><a href="#" class="btn btn--small btn--without-border active" data-page="1">1</a></li>
-          <li><a href="#" class="btn btn--small btn--without-border" data-page="2">2</a></li>
-          <li><a href="#" class="btn btn--small btn--without-border" data-page="3">3</a></li>
-        </ul>
-        -->
+        <!-- Pagination -->
+        <span class="step-links pagination">
+            {% if foundations.has_previous %}
+                <a href="?page1={{ foundations.previous_page_number }}"> previous </a>
+            {% endif %}
+            <span class="current">
+                Page {{ foundations.number }} of {{ foundations.paginator.num_pages }}
+            </span>
+            {% if foundations.has_next %}
+                <a href="?page1={{ foundations.next_page_number }}"> next </a>
+            {% endif %}
+        </span>
+        {% endif %}
+       <!-- -->
       </div>
-
-
+         <hr />
       <!-- SLIDE 2 -->
       <div class="help--slides" data-id="2">
         <p>
@@ -126,88 +117,73 @@
                 pozarządowych, z którymi współpracujemy. Możesz sprawdzić czym
                 się zajmują, komu pomagają i czego potrzebują.
         </p>
+          {% if ngos %}
         <ul class="help--slides-items">
+             {% for ngo in ngos %}
         <li>
             <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subtitle" class="item_value">{{data.description}}</div>
+              <div id="foundation_title" class="item_value">{{ngo.name}}</div>
+              <div id="foundation_subtitle" class="item_value">{{ngo.description}}</div>
             </div>
 
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
+            <div id="foundation_text" class="item_value">{{ngo.text}}</div>
           </li>
-
-        <li>
-            <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subtitle" class="item_value">{{data.description}}</div>
-            </div>
-
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
-          </li>
-
-        <li>
-            <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subtitle" class="item_value">{{data.description}}</div>
-            </div>
-
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
-          </li>
-
-        <li>
-            <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subtitle" class="item_value">{{data.description}}</div>
-            </div>
-
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
-          </li>
+            {% endfor %}
         </ul>
 
-        <!-- Pagination
-        <ul class="help--slides-pagination">
-          <li><a href="#" class="btn btn--small btn--without-border active" data-page="1">1</a></li>
-          <li><a href="#" class="btn btn--small btn--without-border" data-page="2">2</a></li>
-          <li><a href="#" class="btn btn--small btn--without-border" data-page="3">3</a></li>
-          <li><a href="#" class="btn btn--small btn--without-border" data-page="4">4</a></li>
-          <li><a href="#" class="btn btn--small btn--without-border" data-page="5">5</a></li>
-        </ul>
+        <!-- Pagination -->
+       <span class="step-links pagination">
+            {% if ngos.has_previous %}
+                <a href="?page2={{ ngos.previous_page_number }}"> previous </a>
+            {% endif %}
+            <span class="current">
+                Page {{ ngos.number }} of {{ ngos.paginator.num_pages }}
+            </span>
+            {% if ngos.has_next %}
+                <a href="?page2={{ ngos.next_page_number }}"> next </a>
+            {% endif %}
+        </span>
+        {% endif %}
         -->
       </div>
 
+          <hr />
       <!-- SLIDE 3 -->
       <div class="help--slides" data-id="3">
         <p> W naszej bazie znajdziesz listę zweryfikowanych lokalnych
                 zbiórek. Możesz sprawdzić jaki jest cel zbiórki i
                 jakie są najpilniejsze potrzeby.</p>
+           {% if charity %}
         <ul class="help--slides-items">
+            {% for char in charity %}
         <li>
             <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subtitle" class="item_value">{{data.description}}</div>
+              <div id="foundation_title" class="item_value">{{char.name}}</div>
+              <div id="foundation_subtitle" class="item_value">{{char.description}}</div>
             </div>
 
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
+            <div id="foundation_text" class="item_value">{{char.text}}</div>
           </li>
+            {% endfor %}
 
-        <li>
-            <div class="col">
-              <div id="foundation_title" class="item_value">{{data.name}}</div>
-              <div id="foundation_subtitle" class="item_value">{{data.description}}</div>
-            </div>
-
-            <div id="foundation_text" class="item_value">{{data.text}}</div>
-          </li>
         </ul>
 
-        <!-- Pagination
-        <ul class="help--slides-pagination">
-          <li><a href="#" class="btn btn--small btn--without-border active" data-page="1">1</a></li>
-          <li><a href="#" class="btn btn--small btn--without-border" data-page="2">2</a></li>
-        </ul>
+        <!-- Pagination -->
+        <span class="step-links pagination">
+            {% if charity.has_previous %}
+                <a href="?page3={{ charity.previous_page_number }}"> previous </a>
+            {% endif %}
+            <span class="current">
+                Page {{ charity.number }} of {{ charity.paginator.num_pages }}
+            </span>
+            {% if charity.has_next %}
+                <a href="?page3={{ charity.next_page_number }}"> next </a>
+            {% endif %}
+        </span>
+        {% endif %}
         -->
       </div>
-     {% endfor %}
+
     </section>
                 <a name="section-7"> </a>
     <footer>
