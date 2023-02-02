@@ -36,8 +36,6 @@ class Institution(models.Model):
     class Meta:
         verbose_name_plural = ('Instytucje')
 
-#class CustomUser(AbstractUser):
-#    email = models.EmailField(('Email address'), unique=True)
 
 class Donation(models.Model):
     quantity = models.DecimalField(max_digits=6, decimal_places=2)

@@ -48,17 +48,6 @@ from django.conf import settings
 
 
 
-#def index(request):
-#    queryset = Category.objects.all()
-#    context = {
-#       'queryset': queryset
-#        #        'user_id': request.user.id
-#    }
-#    return TemplateResponse(request, 'index.html', context)
-#    # return HttpResponse("Hello, world. You're at the polls index.")
-#    #return TemplateResponse(request, 'login.html', context)
-#    #return HttpResponse(request, index.html, context)
-
 class Index(View):
         def get(self, request, *args, **kwargs):
             donations = Donation.objects.all()
@@ -121,7 +110,7 @@ class Index(View):
                 #            'user_id': request.user.id
             }
             return render(request, 'index.html', context)
-        # return HttpResponse("Hello, world. You're at the polls index.")
+
 
 class Landing_Page(View):
     def get(self, request, *args, **kwargs):
@@ -155,7 +144,6 @@ class Landing_Page(View):
 #            'user_id': request.user.id
     }
         return render(request, 'index.html', context)
-    #return HttpResponse("Hello, world. You're at the polls index.")
 
 
 def AddDonation(request):
@@ -166,9 +154,7 @@ def AddDonation(request):
         #        'user_id': request.user.id
     }
     return TemplateResponse(request, 'form.html', context)
-    # return HttpResponse("Hello, world. You're at the polls index.")
-    #return TemplateResponse(request, 'login.html', context)
-    #return TemplateResponse(request, 'form-confirmation.html', context)
+
 
 class Login(LoginView):
 
@@ -210,9 +196,6 @@ class Register(SuccessMessageMixin, CreateView):
 
 
 
-    # return HttpResponse("Hello, world. You're at the polls index.")
-    #return TemplateResponse(request, 'login.html', context)
-    #return TemplateResponse(request, 'register.html', context)
 
 class AddDonationView(SessionWizardView):
     form_list = (
