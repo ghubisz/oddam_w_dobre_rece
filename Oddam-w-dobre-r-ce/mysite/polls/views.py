@@ -56,7 +56,7 @@ class Index(View):
             quantity = sum([donation.quantity for donation in donations])
             institutions = len(set([donation.institution_id for donation in
                                     donations]))
-#TODO zmienic pag na 5
+#TO DO: zmienic pag na 5
             found_paginator = Paginator(foundations, 3)
             page = request.GET.get('page1')
             try:
@@ -140,8 +140,7 @@ class Landing_Page(View):
             'foundations': foundations,
             'ngos': ngos,
             'charitiy': charity
-#            'queryset': queryset
-#            'user_id': request.user.id
+
     }
         return render(request, 'index.html', context)
 
@@ -151,7 +150,7 @@ def AddDonation(request):
 
     context = {
         'queryset': queryset
-        #        'user_id': request.user.id
+
     }
     return TemplateResponse(request, 'form.html', context)
 
@@ -246,6 +245,7 @@ class AddDonationView(SessionWizardView):
         return render(self.request,'form-confirmation.html', {'form_data': [
             form.cleaned_data for form in form_list]})
 
+#TO DO:do usunięcia
 #class Activate(View):
 #    template_name = 'login.html'
 
